@@ -99,22 +99,22 @@ public class AttendanceController {
         return "publish";
     }
 
-    @GetMapping("/attend/{id}")
-    public String showAttendeeForm(@PathVariable UUID id, Model model) {
-        AttendanceSession session = sessionRepository.findById(id)
+    @GetMapping("/attend/{sessionId}")
+    public String showAttendeeForm(@PathVariable UUID sessionId, Model model) {
+        AttendanceSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid session ID"));
 
         model.addAttribute("activeSession", session);
         return "attendee-form";
     }
 
-    @PostMapping("/attend/{id}")
+    @PostMapping("/attend/{sessionId}")
     public String submitAttendance(
-            @PathVariable UUID id,
+            @PathVariable UUID sessionId,
             @ModelAttribute Attendee attendee,
             Model model) {
         
-        AttendanceSession session = sessionRepository.findById(id)
+        AttendanceSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid session ID"));
         
         attendee.setAttendanceSession(session);

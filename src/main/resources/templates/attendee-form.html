@@ -24,7 +24,7 @@
     <div id="errorAlert" class="alert"></div>
     <div id="locationStatus">Waiting for precise location...</div>
 
-    <form id="attendanceForm" th:action="@{/attend/{id}(id=${activeSession.id})}" method="post">
+    <form id="attendanceForm" th:action="@{/attend/{sessionId}(sessionId=${activeSession.id})}" method="post">
         <!-- Hidden Lat/Lng to be populated by JS -->
         <input type="hidden" id="capturedLatitude" name="capturedLatitude"/>
         <input type="hidden" id="capturedLongitude" name="capturedLongitude"/>
@@ -60,13 +60,24 @@
         const errorAlert = document.getElementById("errorAlert");
         const locationStatus = document.getElementById("locationStatus");
         const submitBtn = document.getElementById("submitBtn");
+        const form = document.getElementById("attendanceForm");
 
         function showError(msg) {
             errorAlert.style.display = "block";
             errorAlert.textContent = msg;
             locationStatus.style.display = "none";
             alert("Location access is required to mark attendance.");
+            submitBtn.disabled = true;
         }
+
+        form.addEventListener("submit", function(e) {
+            const lat = document.getElementById("capturedLatitude").value;
+            const lng = document.getElementById("capturedLongitude").value;
+            if (!lat || !lng) {
+                e.preventDefault();
+                showError("Location is required.");
+            }
+        });
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
