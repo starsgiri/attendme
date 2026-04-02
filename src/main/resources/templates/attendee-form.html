@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mark Attendance</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #eef2f5; padding: 2rem; display: flex; justify-content: center; }
+        .card { background: white; width: 100%; max-width: 400px; padding: 2rem; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); border-radius: 8px; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; font-size: 16px; margin-top: 1rem; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .alert { padding: 1rem; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 1rem; display: none; }
+        #locationStatus { font-size: 0.9rem; color: #856404; margin-bottom: 1rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 th:text="'Mark Attendance for ' + ${activeSession.sessionName}">Session Name</h2>
+    
+    <div id="errorAlert" class="alert"></div>
+    <div id="locationStatus">Waiting for precise location...</div>
+
+    <form id="attendanceForm" th:action="@{/attend/{id}(id=${activeSession.id})}" method="post">
+        <!-- Hidden Lat/Lng to be populated by JS -->
+        <input type="hidden" id="capturedLatitude" name="capturedLatitude"/>
+        <input type="hidden" id="capturedLongitude" name="capturedLongitude"/>
+
+        <!-- Dynamic form fields mapping based on creator's selection -->
+        
+        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Name')}">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="Enter your full name">
+        </div>
+        
+        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('RollNumber')}">
+            <label for="rollNumber">Roll / ID Number</label>
+            <input type="text" id="rollNumber" name="rollNumber" required placeholder="E.g. 19B10001">
+        </div>
+
+        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Branch')}">
+            <label for="branch">Branch / Department</label>
+            <input type="text" id="branch" name="branch" required placeholder="E.g. Computer Science">
+        </div>
+
+        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Year')}">
+            <label for="year">Year of Study</label>
+            <input type="text" id="year" name="year" required placeholder="E.g. 3rd Year">
+        </div>
+
+        <button type="submit" id="submitBtn" disabled>Mark Attendance</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const errorAlert = document.getElementById("errorAlert");
+        const locationStatus = document.getElementById("locationStatus");
+        const submitBtn = document.getElementById("submitBtn");
+
+        function showError(msg) {
+            errorAlert.style.display = "block";
+            errorAlert.textContent = msg;
+            locationStatus.style.display = "none";
+            alert("Location access is required to mark attendance.");
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    document.getElementById("capturedLatitude").value = position.coords.latitude;
+                    document.getElementById("capturedLongitude").value = position.coords.longitude;
+                    locationStatus.textContent = "\u2714 Location acquired successfully. You can now submit.";
+                    locationStatus.style.color = "#155724";
+                    locationStatus.style.backgroundColor = "#d4edda";
+                    submitBtn.disabled = false;
+                },
+                function(error) {
+                    showError("User denied the request for Geolocation or it is unavailable.");
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            showError("Geolocation is not supported by this browser.");
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Attendance Marked</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; text-align: center; padding: 3rem; }
+        .card { background: white; margin: auto; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; display: inline-block; }
+        h1.success { color: #28a745; margin-bottom: 0.5rem; }
+        h1.warning { color: #dc3545; margin-bottom: 0.5rem; }
+        p { font-size: 1.1rem; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="card" th:if="${isWithinRange}">
+    <h1 class="success">&#10004; Success</h1>
+    <p th:text="${successMessage}">Record successfully added.</p>
+    <p>You may now close this window safely.</p>
+</div>
+
+<div class="card" th:if="${!isWithinRange}">
+    <h1 class="warning">&#10008; Outside Range</h1>
+    <p>Your attendance was recorded, but you were outside the allowed range of the session's geographic target.</p>
+</div>
+
+</body>
+</html>

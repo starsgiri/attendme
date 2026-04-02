@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Session Published</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f6f9; padding: 2rem; }
+        .card { background: white; margin: auto; padding: 2rem; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); border-radius: 8px; max-width: 500px; }
+        img.qr-code { width: 100%; max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-top: 1rem; }
+        .info { text-align: left; background: #eef2f5; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+        a.btn { display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 th:text="${activeSession.sessionName}">Session Name</h2>
+    <p>Session is now live! Ask attendees to scan this QR code.</p>
+
+    <!-- Render base64 image string -->
+    <img class="qr-code" th:src="'data:image/png;base64,' + ${qrCodeBase64}" alt="QR Code for Attendance"/>
+
+    <div class="info">
+        <p><strong>Geofence Target:</strong> <span th:text="${activeSession.targetLatitude}"></span>, <span th:text="${activeSession.targetLongitude}"></span></p>
+        <p><strong>Range:</strong> <span th:text="${activeSession.allowedRadius} + ' meters'"></span></p>
+    </div>
+
+    <p style="word-wrap: break-word; margin-top: 1rem;">
+        URL: <a th:href="${attendeeUrl}" th:text="${attendeeUrl}" target="_blank">attendeeUrl</a>
+    </p>
+
+    <a th:href="@{/session/{id}/dashboard(id=${activeSession.id})}" class="btn" style="background:#28a745;">View Admin Dashboard</a>
+    <br/>
+    <a href="/" class="btn" style="background:#6c757d;">Create Another Session</a>
+</div>
+
+</body>
+</html>
