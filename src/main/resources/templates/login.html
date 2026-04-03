@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login - EasyAccess</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; width: 100%; box-sizing: border-box; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #0056b3; }
+        .links { margin-top: 1rem; text-align: center; }
+        .alert { padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Admin Login</h2>
+        
+        <div th:if="${param.error}" class="alert alert-error">Invalid username or password.</div>
+        <div th:if="${param.logout}" class="alert alert-success">You have been logged out.</div>
+        <div th:if="${param.success}" class="alert alert-success">Account created successfully. Please login.</div>
+        
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Sign In</button>
+        </form>
+        
+        <div class="links">
+            <p>Don't have an account? <a th:href="@{/signup}">Sign Up</a></p>
+        </div>
+    </div>
+</body>
+</html>

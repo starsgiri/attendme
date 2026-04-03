@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sign Up - EasyAccess</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; width: 100%; box-sizing: border-box; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #218838; }
+        .links { margin-top: 1rem; text-align: center; }
+        .alert { padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Admin Sign Up</h2>
+        
+        <div th:if="${error}" class="alert alert-error" th:text="${error}">Error creating account.</div>
+        
+        <form th:action="@{/signup}" method="post">
+            <div class="form-group">
+                <label for="username">Choose Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Choose Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        
+        <div class="links">
+            <p>Already have an account? <a th:href="@{/login}">Sign In</a></p>
+        </div>
+    </div>
+</body>
+</html>
