@@ -24,6 +24,10 @@ public class AttendanceSession {
     @Column(nullable = false)
     private String sessionName;
 
+    private String department;
+    
+    private String sessionType;
+
     private LocalDateTime createdAt;
     
     private LocalDateTime expiresAt;

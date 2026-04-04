@@ -52,6 +52,8 @@ public class AttendanceController {
     @PostMapping("/session")
     public String createSession(
             @RequestParam String sessionName,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String sessionType,
             @RequestParam Double targetLatitude,
             @RequestParam Double targetLongitude,
             @RequestParam Double allowedRadius,
@@ -59,6 +61,8 @@ public class AttendanceController {
 
         AttendanceSession session = AttendanceSession.builder()
                 .sessionName(sessionName)
+                .department(department)
+                .sessionType(sessionType)
                 .targetLatitude(targetLatitude)
                 .targetLongitude(targetLongitude)
                 .allowedRadius(allowedRadius)
@@ -82,6 +86,8 @@ public class AttendanceController {
         AttendanceSession session = sessionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid session ID"));
 
+        List<Attendee> attendees = attendeeRepository.findByAttendanceSessionId(id);
+
         // Build absolute URL for the attendee form
         String baseUrl = ServletUriComponentsBuilder.fromRequestUri(request)
                 .replacePath(null)
@@ -95,6 +101,7 @@ public class AttendanceController {
         model.addAttribute("activeSession", session);
         model.addAttribute("attendeeUrl", attendeeUrl);
         model.addAttribute("qrCodeBase64", qrCodeBase64);
+        model.addAttribute("attendees", attendees);
 
         return "publish";
     }

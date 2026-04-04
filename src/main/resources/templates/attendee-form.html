@@ -1,108 +1,158 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Mark Attendance</title>
+    <title>Mark Attendance - Presence</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #eef2f5; padding: 2rem; display: flex; justify-content: center; }
-        .card { background: white; width: 100%; max-width: 400px; padding: 2rem; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); border-radius: 8px; }
-        .form-group { margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; font-size: 16px; margin-top: 1rem; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        .alert { padding: 1rem; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin-bottom: 1rem; display: none; }
-        #locationStatus { font-size: 0.9rem; color: #856404; margin-bottom: 1rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; }
+        :root {
+            --bg-main: #0B1120;
+            --bg-card: #151C2C;
+            --border-color: #222B40;
+            --text-main: #FFFFFF;
+            --text-muted: #8B9BB4;
+            --text-label: #637381;
+            --accent-blue: #6366F1;
+            --accent-blue-hover: #4F46E5;
+            --success-green: #4ade80;
+            --success-bg: rgba(74, 222, 128, 0.1);
+            --error-red: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+
+        .brand-logo { font-size: 24px; font-weight: 900; color: var(--accent-blue); letter-spacing: -0.5px; position: absolute; top: 32px; left: 32px; }
+
+        .form-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 24px; padding: 40px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        
+        .header { text-align: center; margin-bottom: 32px; }
+        .session-badge { background-color: rgba(99, 102, 241, 0.1); color: var(--accent-blue); padding: 6px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 16px; border: 1px solid rgba(99, 102, 241, 0.2); }
+        .title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+
+        .form-group { margin-bottom: 24px; }
+        label { display: block; font-size: 12px; font-weight: 700; color: var(--text-label); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        input[type="text"] { width: 100%; background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; color: var(--text-main); font-size: 14px; font-family: inherit; transition: all 0.2s; outline: none; }
+        input[type="text"]:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        input[type="text"]::placeholder { color: #3A455A; }
+
+        .submit-btn { width: 100%; background-color: var(--accent-blue); color: #ffffff; border: none; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .submit-btn:hover:not(:disabled) { background-color: var(--accent-blue-hover); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); }
+        .submit-btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .status-box { padding: 16px; border-radius: 12px; margin-bottom: 24px; font-size: 13px; font-weight: 500; display: flex; align-items: flex-start; gap: 12px; border: 1px solid transparent; }
+        .status-box.waiting { background-color: rgba(255, 170, 0, 0.1); color: #ffaa00; border-color: rgba(255, 170, 0, 0.2); }
+        .status-box.success { background-color: var(--success-bg); color: var(--success-green); border-color: rgba(74, 222, 128, 0.2); }
+        .status-box.error { background-color: var(--error-bg); color: var(--error-red); border-color: rgba(239, 68, 68, 0.2); }
+        .status-box svg { width: 18px; height: 18px; flex-shrink: 0; fill: currentColor; margin-top: 1px; }
+        
+        .alert { padding: 16px; color: var(--error-red); background-color: var(--error-bg); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; margin-bottom: 24px; display: none; font-size: 13px; font-weight: 500; }
+        
+        .footer-note { text-align: center; margin-top: 32px; font-size: 12px; color: var(--text-muted); }
+        .footer-note svg { width: 12px; height: 12px; fill: currentColor; vertical-align: middle; margin-right: 4px; }
     </style>
 </head>
 <body>
+    <div class="brand-logo">Presence</div>
 
-<div class="card">
-    <h2 th:text="'Mark Attendance for ' + ${activeSession.sessionName}">Session Name</h2>
+    <div class="form-card">
+        <div class="header">
+            <div class="session-badge" th:text="${activeSession.sessionName}">Engineering Hall A</div>
+            <h1 class="title">Mark Attendance</h1>
+            <p class="subtitle">Please provide your details below and allow location access to confirm your presence.</p>
+        </div>
+        
+        <div id="errorAlert" class="alert"></div>
+        
+        <div id="locationStatus" class="status-box waiting">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <div>Waiting for precise location signal...</div>
+        </div>
+
+        <form id="attendanceForm" th:action="@{/attend/{sessionId}(sessionId=${activeSession.id})}" method="post">
+            <input type="hidden" id="capturedLatitude" name="capturedLatitude"/>
+            <input type="hidden" id="capturedLongitude" name="capturedLongitude"/>
+
+            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Name')}">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="Enter your full name">
+            </div>
+            
+            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('RollNumber')}">
+                <label for="rollNumber">Roll / ID Number</label>
+                <input type="text" id="rollNumber" name="rollNumber" required placeholder="E.g. 19B10001">
+            </div>
+
+            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Branch')}">
+                <label for="branch">Branch / Department</label>
+                <input type="text" id="branch" name="branch" required placeholder="E.g. Computer Science">
+            </div>
+
+            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Year')}">
+                <label for="year">Year of Study</label>
+                <input type="text" id="year" name="year" required placeholder="E.g. 3rd Year">
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>Confirm Presence</button>
+        </form>
+    </div>
     
-    <div id="errorAlert" class="alert"></div>
-    <div id="locationStatus">Waiting for precise location...</div>
+    <div class="footer-note">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+        Secured by Geofencing Technology
+    </div>
 
-    <form id="attendanceForm" th:action="@{/attend/{sessionId}(sessionId=${activeSession.id})}" method="post">
-        <!-- Hidden Lat/Lng to be populated by JS -->
-        <input type="hidden" id="capturedLatitude" name="capturedLatitude"/>
-        <input type="hidden" id="capturedLongitude" name="capturedLongitude"/>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const errorAlert = document.getElementById("errorAlert");
+            const locationStatus = document.getElementById("locationStatus");
+            const submitBtn = document.getElementById("submitBtn");
+            const form = document.getElementById("attendanceForm");
 
-        <!-- Dynamic form fields mapping based on creator's selection -->
-        
-        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Name')}">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" required placeholder="Enter your full name">
-        </div>
-        
-        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('RollNumber')}">
-            <label for="rollNumber">Roll / ID Number</label>
-            <input type="text" id="rollNumber" name="rollNumber" required placeholder="E.g. 19B10001">
-        </div>
+            function showError(msg) {
+                errorAlert.style.display = "block";
+                errorAlert.textContent = msg;
+                locationStatus.className = "status-box error";
+                locationStatus.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div>Location access failed. Refresh to try again.</div>';
+                submitBtn.disabled = true;
+            }
 
-        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Branch')}">
-            <label for="branch">Branch / Department</label>
-            <input type="text" id="branch" name="branch" required placeholder="E.g. Computer Science">
-        </div>
+            form.addEventListener("submit", function(e) {
+                const lat = document.getElementById("capturedLatitude").value;
+                const lng = document.getElementById("capturedLongitude").value;
+                if (!lat || !lng) {
+                    e.preventDefault();
+                    showError("Location is strictly required to mark attendance.");
+                }
+            });
 
-        <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Year')}">
-            <label for="year">Year of Study</label>
-            <input type="text" id="year" name="year" required placeholder="E.g. 3rd Year">
-        </div>
-
-        <button type="submit" id="submitBtn" disabled>Mark Attendance</button>
-    </form>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const errorAlert = document.getElementById("errorAlert");
-        const locationStatus = document.getElementById("locationStatus");
-        const submitBtn = document.getElementById("submitBtn");
-        const form = document.getElementById("attendanceForm");
-
-        function showError(msg) {
-            errorAlert.style.display = "block";
-            errorAlert.textContent = msg;
-            locationStatus.style.display = "none";
-            alert("Location access is required to mark attendance.");
-            submitBtn.disabled = true;
-        }
-
-        form.addEventListener("submit", function(e) {
-            const lat = document.getElementById("capturedLatitude").value;
-            const lng = document.getElementById("capturedLongitude").value;
-            if (!lat || !lng) {
-                e.preventDefault();
-                showError("Location is required.");
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        document.getElementById("capturedLatitude").value = position.coords.latitude;
+                        document.getElementById("capturedLongitude").value = position.coords.longitude;
+                        locationStatus.className = "status-box success";
+                        locationStatus.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><div>Location acquired successfully. You can now confirm your presence.</div>';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Confirm Presence";
+                    },
+                    function(error) {
+                        showError("You must allow location access to mark your attendance.");
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                showError("Geolocation is not supported by your device or browser.");
             }
         });
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    document.getElementById("capturedLatitude").value = position.coords.latitude;
-                    document.getElementById("capturedLongitude").value = position.coords.longitude;
-                    locationStatus.textContent = "\u2714 Location acquired successfully. You can now submit.";
-                    locationStatus.style.color = "#155724";
-                    locationStatus.style.backgroundColor = "#d4edda";
-                    submitBtn.disabled = false;
-                },
-                function(error) {
-                    showError("User denied the request for Geolocation or it is unavailable.");
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 20000,
-                    maximumAge: 0
-                }
-            );
-        } else {
-            showError("Geolocation is not supported by this browser.");
-        }
-    });
-</script>
-
+    </script>
 </body>
 </html>

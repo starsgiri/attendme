@@ -1,205 +1,324 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Presence</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { background: #eef2f5; padding-top: 2rem; padding-bottom: 2rem; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 1200px; }
-        #map { height: 400px; width: 100%; border-radius: 0 0 8px 8px; }
-        .qr-code { max-width: 250px; height: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
-        .qr-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
-        .stat-box { padding: 1.5rem; background: #f8f9fa; border-radius: 8px; text-align: center; height: 100%; }
-        .stat-box.primary { border-bottom: 4px solid #0d6efd; }
-        .stat-box.danger { border-bottom: 4px solid #dc3545; }
+        :root {
+            /* Default Dark Theme */
+            --bg-main: #0B1120; --bg-sidebar: #101623; --bg-card: #151C2C; --bg-card-hover: #1A2234;
+            --border-color: #222B40; --text-main: #FFFFFF; --text-muted: #8B9BB4; --text-label: #637381;
+            --accent-blue: #6366F1; --active-item-bg: #1C2438; --active-item-border: #6366F1; 
+            --success-green: #4ade80; --error-red: #f87171;
+            --stat-bar-bg: rgba(255,255,255,0.05);
+            --map-container-bg: #0d1117;
+            --log-item-border: rgba(255,255,255,0.02);
+            --badge-success-bg: rgba(74, 222, 128, 0.1);
+            --badge-error-bg: rgba(248, 113, 113, 0.1);
+            --avatar-bg: rgba(99, 102, 241, 0.15);
+            --map-label-bg: rgba(21, 28, 44, 0.8);
+        }
+
+        :root.light-mode {
+            /* Light Theme */
+            --bg-main: #F4F6F8; --bg-sidebar: #FFFFFF; --bg-card: #FFFFFF; --bg-card-hover: #F9FAFB;
+            --border-color: #E5E7EB; --text-main: #111827; --text-muted: #6B7280; --text-label: #4B5563;
+            --accent-blue: #4F46E5; --active-item-bg: #EFF6FF; --active-item-border: #4F46E5; 
+            --success-green: #10B981; --error-red: #EF4444;
+            --stat-bar-bg: #E5E7EB;
+            --map-container-bg: #E5E7EB;
+            --log-item-border: #F3F4F6;
+            --badge-success-bg: #D1FAE5;
+            --badge-error-bg: #FEE2E2;
+            --avatar-bg: #E0E7FF;
+            --map-label-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; transition: background-color 0.3s, color 0.3s; }
+        .sidebar { width: 250px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; transition: background-color 0.3s; }
+        .sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; }
+        .brand-logo { font-size: 20px; font-weight: 900; color: var(--accent-blue); letter-spacing: -0.5px; }
+        .admin-badge { margin-top: 30px; padding: 0 24px; }
+        .admin-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .admin-title::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--success-green); }
+        .admin-status { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; padding-left: 14px; }
+        .nav-menu { margin-top: 24px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-item { padding: 12px 24px; display: flex; align-items: center; gap: 12px; color: var(--text-muted); text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .nav-item.active { background-color: var(--active-item-bg); color: var(--text-main); border-left-color: var(--active-item-border); }
+        .nav-item svg { width: 16px; height: 16px; fill: currentColor; }
+        .new-session-sidebar-btn { margin: auto 24px 24px; background-color: #818CF8; color: #0B1120; border: none; border-radius: 20px; padding: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none; }
+        
+        .content-area { flex: 1; display: flex; flex-direction: column; height: 100vh; }
+        .top-nav { height: 72px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 40px; justify-content: space-between; }
+        .top-links { display: flex; gap: 32px; }
+        .top-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; position: relative; }
+        .top-link.active { color: var(--text-main); }
+        .top-link.active::after { content: ''; position: absolute; bottom: -25px; left: 0; right: 0; height: 2px; background-color: var(--accent-blue); }
+        .top-actions { display: flex; align-items: center; gap: 20px; }
+        .top-actions svg { width: 20px; height: 20px; fill: var(--text-muted); cursor: pointer; }
+
+        .dashboard-body { padding: 32px 40px; flex: 1; overflow-y: auto; }
+        .header-layer { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+        .header-info h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+        .header-info p { font-size: 14px; color: var(--text-muted); }
+        .download-btn { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .download-btn:hover { background-color: var(--bg-card); border-color: var(--text-muted); }
+        .download-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background-color: var(--bg-card); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .stat-card .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 12px; }
+        .stat-card .value-row { display: flex; align-items: baseline; gap: 12px; }
+        .stat-card .value-row .value { font-size: 48px; font-weight: 900; line-height: 1; color: var(--accent-blue); }
+        .stat-card .value-row .sub-text { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .stat-card .value-row .sub-text.success { color: var(--success-green); }
+        .stat-card .value-row .sub-text.danger { color: var(--error-red); }
+        .stat-card.in-range .value { color: var(--success-green); }
+        .stat-card.out-range .value { color: var(--error-red); }
+        .stat-bar { position: absolute; bottom: 24px; left: 24px; right: 24px; height: 4px; background-color: var(--stat-bar-bg); border-radius: 2px; }
+        .stat-bar-fill { height: 100%; border-radius: 2px; width: 100%; transition: width 0.5s ease; }
+        .stat-card.total .stat-bar-fill { background-color: var(--accent-blue); width: 70%; }
+        .stat-card.in-range .stat-bar-fill { background-color: var(--success-green); width: 0%; }
+        .stat-card.out-range .stat-bar-fill { background-color: var(--error-red); width: 0%; }
+
+        .main-content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; height: calc(100vh - 365px); min-height: 480px; }
+        .map-container { background-color: var(--map-container-bg); border-radius: 24px; position: relative; overflow: hidden; }
+        #liveMap { width: 100%; height: 100%; z-index: 1; }
+        .map-target-label { position: absolute; top: 24px; left: 24px; background-color: var(--map-label-bg); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; z-index: 5; text-transform: uppercase; color: var(--text-main); }
+        .map-target-label::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--success-green); box-shadow: 0 0 8px var(--success-green); }
+        
+        .log-container { background-color: var(--bg-card); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.3s; }
+        .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .log-header h2 { font-size: 16px; font-weight: 700; }
+        .log-tools { display: flex; gap: 12px; }
+        .log-tools svg { width: 16px; height: 16px; fill: var(--text-muted); cursor: pointer; }
+        
+        .log-table-header { display: grid; grid-template-columns: 2fr 1fr 1fr; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .log-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 8px; }
+        .log-list::-webkit-scrollbar { width: 6px; }
+        .log-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .log-item { display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--log-item-border); transition: border-color 0.3s; }
+        .log-item:last-child { border-bottom: none; }
+        .log-user { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background-color: var(--avatar-bg); color: var(--accent-blue); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.3); transition: background-color 0.3s; }
+        .log-user-info .name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .log-user-info .id { font-size: 10px; color: var(--text-muted); }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; width: fit-content; text-align: center; }
+        .badge.success { background-color: var(--badge-success-bg); color: var(--success-green); border: 1px solid rgba(74, 222, 128, 0.2); transition: background-color 0.3s; }
+        .badge.error { background-color: var(--badge-error-bg); color: var(--error-red); border: 1px solid rgba(248, 113, 113, 0.2); transition: background-color 0.3s; }
+        .log-time { font-size: 11px; font-family: monospace; color: var(--text-muted); text-align: right; }
+        
+        /* Theme Toggle Button */
+        .theme-toggle-btn { background: none; border: none; padding: 8px; border-radius: 8px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .theme-toggle-btn:hover { background-color: var(--bg-card-hover); color: var(--text-main); }
+        .theme-toggle-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        html.light-mode .icon-moon { display: none; }
+        html:not(.light-mode) .icon-sun { display: none; }
+
     </style>
 </head>
 <body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="brand-logo">Presence</div></div>
+        <div class="admin-badge"><div class="admin-title">Admin Portal</div><div class="admin-status">SYSTEM ACTIVE</div></div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zM13 4v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z"/></svg> Overview</a>
+            <a href="/" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3.6 5.96c-1.16-.9-3.26-1.46-5.6-1.46s-4.44.56-5.6 1.46V16h11.2v2.96z"/></svg> Active Sessions</a>
+        </nav>
+        <a href="/" class="new-session-sidebar-btn">New Session</a>
+    </aside>
 
-<div class="container">
-    <h2 class="mb-4 text-center">Admin Dashboard - <span th:text="${activeSession.sessionName}">Session Name</span></h2>
-    
-    <div class="row g-4 mb-5">
-        <!-- Stat Boxes -->
-        <div class="col-md-4">
-            <div class="stat-box">
-                <h3 class="h5 text-muted">Total Scans</h3>
-                <div class="h2 fw-bold" id="stat-total" th:text="${attendees.size()}">0</div>
+    <main class="content-area">
+        <header class="top-nav">
+            <div class="top-links">
+                <a href="#" class="top-link active">Dashboard</a><a th:href="@{/session/{id}/publish(id=${activeSession.id})}" class="top-link">QR Publish</a><a href="#" class="top-link">Map</a><a href="#" class="top-link">Reports</a>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-box primary">
-                <h3 class="h5 text-muted">In Range (&le; 150m)</h3>
-                <div class="h2 fw-bold text-primary" id="stat-inside" th:text="${attendees.?[withinRange].size()}">0</div>
+            <div class="top-actions">
+                <button class="theme-toggle-btn" id="themeToggle" title="Toggle Theme">
+                    <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+                </button>
+                <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <a href="/logout" title="Logout"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></a>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-box danger">
-                <h3 class="h5 text-muted">Out of Range (&gt; 150m)</h3>
-                <div class="h2 fw-bold text-danger" id="stat-outside" th:text="${attendees.?[!withinRange].size()}">0</div>
-            </div>
-        </div>
-    </div>
+        </header>
 
-    <!-- Side-by-Side Section -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0 text-center fw-bold">Session QR Code</h5>
+        <div class="dashboard-body">
+            <div class="header-layer">
+                <div class="header-info">
+                    <h1>System Live View</h1>
+                    <p th:text="'Real-time attendance monitoring for \'' + ${activeSession.sessionName} + '\''">Real-time attendance monitoring for 'Annual Tech Summit'</p>
                 </div>
-                <div class="card-body qr-container">
-                    <img class="qr-code mb-3 shadow-sm" th:src="'data:image/png;base64,' + ${qrCodeBase64}" alt="QR Code for Attendance"/>
-                    <p class="text-muted small word-break mb-1">Scan to mark attendance, or visit:</p>
-                    <a th:href="${attendeeUrl}" th:text="${attendeeUrl}" target="_blank" class="text-break">url</a>
+                <a th:href="@{/session/{id}/export-csv(id=${activeSession.id})}" class="download-btn">
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Download CSV
+                </a>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="label">TOTAL SCANS</div>
+                    <div class="value-row">
+                        <div class="value" id="valTotal">0</div>
+                        <div class="sub-text success">+<span id="valNew">0</span> newly joined</div>
+                    </div>
+                    <div class="stat-bar"><div class="stat-bar-fill" style="width: 100%"></div></div>
+                </div>
+                <div class="stat-card in-range">
+                    <div class="label">IN RANGE</div>
+                    <div class="value-row">
+                        <div class="value" id="valIn">0</div>
+                        <div class="sub-text success"><span id="valInPercent">0</span>% Reliability</div>
+                    </div>
+                    <div class="stat-bar"><div class="stat-bar-fill" id="barIn" style="width: 0%"></div></div>
+                </div>
+                <div class="stat-card out-range">
+                    <div class="label">OUT OF RANGE</div>
+                    <div class="value-row">
+                        <div class="value" id="valOut">0</div>
+                        <div class="sub-text danger">Requires Action</div>
+                    </div>
+                    <div class="stat-bar"><div class="stat-bar-fill" id="barOut" style="width: 0%"></div></div>
+                </div>
+            </div>
+
+            <div class="main-content-grid">
+                <div class="map-container">
+                    <div class="map-target-label" th:text="'LIVE: ' + ${activeSession.sessionName}">LIVE: MOSCONE CENTER SOUTH</div>
+                    <div id="liveMap"></div>
+                </div>
+                <div class="log-container">
+                    <div class="log-header">
+                        <h2>Attendee Log</h2>
+                        <div class="log-tools">
+                            <svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        </div>
+                    </div>
+                    <div class="log-table-header">
+                        <div>NAME</div><div>STATUS</div><div style="text-align:right">TIME</div>
+                    </div>
+                    <div class="log-list" id="attendeeLogList">
+                        <!-- Attendees injected here via JS -->
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0 text-center fw-bold">Live Map View</h5>
-                </div>
-                <div class="card-body p-0 d-flex flex-column">
-                    <div id="map" class="flex-grow-1"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
-            <h5 class="m-0 fw-bold">Attendee Log</h5>
-            <a th:href="@{/session/{id}/export-csv(id=${activeSession.id})}" class="btn btn-dark btn-sm fw-bold px-3 py-2">&#11123; Download CSV</a>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th th:if="${activeSession.activatedFields['Name'] != null}">Name</th>
-                        <th th:if="${activeSession.activatedFields['RollNumber'] != null}">Roll Number</th>
-                        <th th:if="${activeSession.activatedFields['Branch'] != null}">Branch</th>
-                        <th th:if="${activeSession.activatedFields['Year'] != null}">Year</th>
-                        <th>Status</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody id="attendee-table-body">
-                    <!-- Populated via Thymeleaf initially, then JS -->
-                    <tr th:each="attendee : ${attendees}">
-                        <td th:if="${activeSession.activatedFields['Name'] != null}" th:text="${attendee.name}"></td>
-                        <td th:if="${activeSession.activatedFields['RollNumber'] != null}" th:text="${attendee.rollNumber}"></td>
-                        <td th:if="${activeSession.activatedFields['Branch'] != null}" th:text="${attendee.branch}"></td>
-                        <td th:if="${activeSession.activatedFields['Year'] != null}" th:text="${attendee.year}"></td>
-                        <td>
-                            <span th:if="${attendee.withinRange}" class="badge bg-primary px-2 py-1">In Range</span>
-                            <span th:if="${!attendee.withinRange}" class="badge bg-danger px-2 py-1">Out of Range</span>
-                        </td>
-                        <td th:text="${#temporals.format(attendee.markedAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
-                    </tr>
-                    <tr th:if="${attendees.empty}" id="empty-row">
-                        <td colspan="100%" class="text-center text-muted py-4">No attendees have scanned yet.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var sessionId = /*[[${activeSession.id}]]*/ '';
+        var targetLat = /*[[${activeSession.targetLatitude}]]*/ 37.4275;
+        var targetLng = /*[[${activeSession.targetLongitude}]]*/ -122.1697;
+        var radius = /*[[${activeSession.allowedRadius}]]*/ 50;
 
-<!-- Leaflet JS CDN -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
+        let map = L.map('liveMap', {zoomControl: true, attributionControl: false}).setView([targetLat, targetLng], 17);
+        // Force map tiles to be light theme as requested, regardless of UI theme
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-<!-- Script Logic -->
-<script th:inline="javascript">
-/*<![CDATA[*/
-    var sessionId = /*[[${activeSession.id}]]*/ '';
-    var targetLat = /*[[${activeSession.targetLatitude}]]*/ 0;
-    var targetLng = /*[[${activeSession.targetLongitude}]]*/ 0;
-    var radius = /*[[${activeSession.allowedRadius}]]*/ 150;
-    
-    // Map setup
-    var map = L.map('map').setView([targetLat, targetLng], 17);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+        L.circle([targetLat, targetLng], {color: '#6366F1', fillColor: '#6366F1', fillOpacity: 0.1, weight: 2, radius: radius}).addTo(map);
 
-    // Creator Marker (Blue)
-    L.circleMarker([targetLat, targetLng], {
-        radius: 8,
-        fillColor: "#000",
-        color: "#0a58ca",
-        weight: 3,
-        opacity: 1,
-        fillOpacity: 1
-    }).bindPopup("<b>Creator Location</b>").addTo(map);
+        let markers = L.layerGroup().addTo(map);
+        let previousTotal = 0;
 
-    // 150m Blue Transparent Geofence
-    L.circle([targetLat, targetLng], {
-        color: '#0d6efd',
-        fillColor: '#0a58ca',
-        fillOpacity: 0.15,
-        weight: 2,
-        radius: radius
-    }).addTo(map);
+        function fetchAndUpdate() {
+            if (!sessionId) return;
+            fetch('/session/' + sessionId + '/attendees-data')
+                .then(r => r.json())
+                .then(data => {
+                    markers.clearLayers();
+                    let total = data.length;
+                    let inRange = 0;
+                    let outOfRange = 0;
+                    let listHtml = '';
+                    
+                    let displayData = [...data].reverse();
 
-    var markersLayer = L.layerGroup().addTo(map);
-
-    function fetchAndUpdate() {
-        if (!sessionId) return;
-        fetch('/session/' + sessionId + '/attendees-data')
-            .then(response => response.json())
-            .then(data => {
-                markersLayer.clearLayers();
-                
-                let inRangeCount = 0;
-                let outRangeCount = 0;
-
-                data.forEach(function(att) {
-                    if (att.capturedLatitude != null && att.capturedLongitude != null) {
-                        // Spring/Jackson might serialize field as 'withinRange' 
-                        let isInside = att.withinRange !== undefined ? att.withinRange : att.isWithinRange;
+                    displayData.forEach((att, index) => {
+                        if(att.withinRange) inRange++; else outOfRange++;
                         
-                        if (isInside) inRangeCount++; else outRangeCount++;
-                        
-                        // Blue marker if <= 150m, Red if > 150m
-                        let markerColor = isInside ? "#0d6efd" : "#dc3545"; 
-                        let ident = att.name ? att.name : (att.rollNumber ? att.rollNumber : 'Unknown');
+                        if(att.capturedLatitude && att.capturedLongitude) {
+                            let color = att.withinRange ? '#4ade80' : '#f87171';
+                            L.circleMarker([att.capturedLatitude, att.capturedLongitude], {
+                                radius: 6, fillColor: color, color: '#151C2C', weight: 2, fillOpacity: 1
+                            }).addTo(markers);
+                        }
 
-                        L.circleMarker([att.capturedLatitude, att.capturedLongitude], {
-                            radius: 8,
-                            fillColor: markerColor,
-                            color: "#fff",
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.9
-                        }).bindPopup("<b>" + ident + "</b><br>" + (isInside ? "In Range" : "Out of Range")).addTo(markersLayer);
+                        let name = att.name || 'Anonymous';
+                        let initials = name.substring(0, 2).toUpperCase();
+                        let statusClass = att.withinRange ? 'success' : 'error';
+                        let statusText = att.withinRange ? 'IN RANGE' : 'OUT OF RANGE';
+                        let idStr = att.rollNumber || 'ID: ' + (att.id ? att.id.substring(0,6) : 'N/A');
+                        
+                        let d = new Date(); d.setMinutes(d.getMinutes() - index);
+                        let timeStr = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+
+                        listHtml += `
+                        <div class="log-item">
+                            <div class="log-user">
+                                <div class="avatar">${initials}</div>
+                                <div class="log-user-info">
+                                    <div class="name">${name}</div>
+                                    <div class="id">${idStr}</div>
+                                </div>
+                            </div>
+                            <div><div class="badge ${statusClass}">${statusText}</div></div>
+                            <div class="log-time">${timeStr}</div>
+                        </div>
+                        `;
+                    });
+
+                    document.getElementById('valTotal').innerText = total;
+                    document.getElementById('valIn').innerText = inRange;
+                    document.getElementById('valOut').innerText = outOfRange;
+                    
+                    let percentIn = total > 0 ? Math.round((inRange/total)*100) : 0;
+                    let percentOut = total > 0 ? Math.round((outOfRange/total)*100) : 0;
+
+                    document.getElementById('valInPercent').innerText = percentIn;
+                    document.getElementById('barIn').style.width = percentIn + '%';
+                    document.getElementById('barOut').style.width = percentOut + '%';
+
+                    if(total > previousTotal && previousTotal !== 0) {
+                        document.getElementById('valNew').innerText = (total - previousTotal);
+                    } else if (previousTotal === 0 && total > 0) {
+                         document.getElementById('valNew').innerText = total;
                     }
-                });
+                    
+                    if(total > 0) previousTotal = total;
 
-                document.getElementById('stat-total').innerText = data.length;
-                document.getElementById('stat-inside').innerText = inRangeCount;
-                document.getElementById('stat-outside').innerText = outRangeCount;
-            }).catch(e => console.error("Auto Refresh Error:", e));
-    }
+                    document.getElementById('attendeeLogList').innerHTML = listHtml;
+                }).catch(e => console.error(e));
+        }
 
-    // Auto refresh every 5 seconds to track attendees dynamically
-    setInterval(fetchAndUpdate, 5000);
-/*]]>*/
-</script>
+        fetchAndUpdate();
+        setInterval(fetchAndUpdate, 5000);
 
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Check local storage for theme preference
+        if (localStorage.getItem('theme') === 'light') {
+            htmlElement.classList.add('light-mode');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('light-mode');
+            if (htmlElement.classList.contains('light-mode')) {
+                localStorage.setItem('theme', 'light');
+            } else {
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+        /*]]>*/
+    </script>
 </body>
 </html>

@@ -1,39 +1,190 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Session Published</title>
+    <title>Publish Session - Presence</title>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f6f9; padding: 2rem; }
-        .card { background: white; margin: auto; padding: 2rem; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); border-radius: 8px; max-width: 500px; }
-        img.qr-code { width: 100%; max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-top: 1rem; }
-        .info { text-align: left; background: #eef2f5; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
-        a.btn { display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 1rem; }
+        :root {
+            --bg-main: #0B1120; --bg-sidebar: #101623; --bg-card: #151C2C; --bg-card-hover: #1A2234;
+            --border-color: #222B40; --text-main: #FFFFFF; --text-muted: #8B9BB4; --text-label: #637381;
+            --accent-blue: #6366F1; --accent-blue-hover: #4F46E5; --active-item-bg: #1C2438;
+            --active-item-border: #6366F1; --success-green: #4ade80; --success-bg: rgba(74, 222, 128, 0.1);
+        }
+        :root.light-mode {
+            --bg-main: #F4F6F8; --bg-sidebar: #FFFFFF; --bg-card: #FFFFFF; --bg-card-hover: #F9FAFB;
+            --border-color: #E5E7EB; --text-main: #111827; --text-muted: #6B7280; --text-label: #4B5563;
+            --accent-blue: #4F46E5; --accent-blue-hover: #4338CA; --active-item-bg: #EEF2FF;
+            --active-item-border: #4F46E5; --success-green: #10B981; --success-bg: #D1FAE5;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        .sidebar { width: 250px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; transition: background-color 0.3s, border-color 0.3s; }
+        .sidebar-header { padding: 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; transition: border-color 0.3s; }
+        .brand-logo { font-size: 20px; font-weight: 900; color: var(--accent-blue); letter-spacing: -0.5px; }
+        .admin-badge { margin-top: 30px; padding: 0 24px; }
+        .admin-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .admin-title::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--success-green); }
+        .admin-status { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; padding-left: 14px; }
+        .nav-menu { margin-top: 24px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-item { padding: 12px 24px; display: flex; align-items: center; gap: 12px; color: var(--text-muted); text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; border-left: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .nav-item:hover { background-color: var(--bg-card-hover); color: var(--text-main); }
+        .nav-item.active { background-color: var(--active-item-bg); color: var(--accent-blue); border-left-color: var(--active-item-border); }
+        .nav-item svg { width: 16px; height: 16px; fill: currentColor; }
+        .new-session-sidebar-btn { margin: auto 24px 24px; background-color: var(--accent-blue); color: #fff; border: none; border-radius: 20px; padding: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: transform 0.2s; text-decoration: none; }
+        .content-area { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
+        .top-nav { height: 72px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background-color: var(--bg-main); position: sticky; top: 0; z-index: 5; transition: background-color 0.3s, border-color 0.3s; }
+        .top-links { display: flex; gap: 32px; }
+        .top-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; position: relative; transition: color 0.3s; }
+        .top-link.active { color: var(--text-main); }
+        .top-link.active::after { content: ''; position: absolute; bottom: -25px; left: 0; right: 0; height: 2px; background-color: var(--accent-blue); }
+        .top-actions { display: flex; align-items: center; gap: 20px; }
+        .theme-toggle-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; transition: all 0.2s; }
+        .theme-toggle-btn:hover { background-color: var(--bg-card-hover); color: var(--text-main); }
+        .theme-toggle-btn svg { width: 20px; height: 20px; fill: currentColor; }
+        .dashboard-body { padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .status-badge { background-color: var(--success-bg); color: var(--success-green); padding: 8px 16px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; border: 1px solid rgba(74, 222, 128, 0.2); }
+        .status-badge::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background-color: var(--success-green); box-shadow: 0 0 8px var(--success-green); }
+        h1 { font-size: 56px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 12px; text-align: center; }
+        .description { color: var(--text-muted); font-size: 16px; text-align: center; max-width: 600px; margin-bottom: 48px; line-height: 1.5; }
+        .flex-layout { display: flex; gap: 24px; justify-content: center; align-items: stretch; width: 100%; max-width: 900px; flex-wrap: wrap; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 32px; padding: 32px; display: flex; flex-direction: column; transition: background-color 0.3s, border-color 0.3s; }
+        .stats-card { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; margin-bottom: 24px; }
+        .stats-card .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 16px; }
+        .stats-card .value { font-size: 64px; font-weight: 900; line-height: 1; margin-bottom: 16px; color: var(--text-main); }
+        .stats-card .trend { font-size: 12px; color: var(--success-green); font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .session-id-card { padding: 24px; display: flex; flex-direction: column; }
+        .session-id-card .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; }
+        .session-id-card .id-val { font-size: 20px; font-weight: 700; color: var(--accent-blue); display: flex; align-items: center; justify-content: space-between; }
+        .qr-card { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; min-width: 380px; }
+        .qr-glow { position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%); opacity: 0.15; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; }
+        .qr-wrapper { background-color: #ffffff; padding: 24px; border-radius: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.1); z-index: 1; margin-bottom: 32px; width: 100%; max-width: 320px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+        .qr-wrapper img { width: 100%; height: auto; display: block; }
+        .direct-link-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; z-index: 1; }
+        .direct-link-val { font-size: 16px; font-weight: 700; color: var(--text-main); z-index: 1; }
+        .dash-btn-container { margin-top: 48px; text-align: center; width: 100%; }
+        .dash-btn { display: inline-flex; align-items: center; gap: 12px; background-color: var(--accent-blue); color: #fff; text-decoration: none; font-size: 16px; font-weight: 700; padding: 16px 32px; border-radius: 40px; transition: all 0.2s; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3); }
+        .dash-btn:hover { background-color: var(--accent-blue-hover); transform: translateY(-2px); }
+        .dash-btn svg { width: 20px; height: 20px; fill: currentColor; }
     </style>
 </head>
 <body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><div class="brand-logo">Presence</div></div>
+        <div class="admin-badge"><div class="admin-title">Admin Portal</div><div class="admin-status">SYSTEM ACTIVE</div></div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zM13 4v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z"/></svg> Overview</a>
+            <a href="/" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3.6 5.96c-1.16-.9-3.26-1.46-5.6-1.46s-4.44.56-5.6 1.46V16h11.2v2.96z"/></svg> Active Sessions</a>
+        </nav>
+        <a href="/" class="new-session-sidebar-btn">New Session</a>
+    </aside>
 
-<div class="card">
-    <h2 th:text="${activeSession.sessionName}">Session Name</h2>
-    <p>Session is now live! Ask attendees to scan this QR code.</p>
+    <main class="content-area">
+        <header class="top-nav">
+            <div class="top-links">
+                <a href="#" class="top-link">Dashboard</a><a href="#" class="top-link active">Sessions</a><a href="#" class="top-link">Map</a><a href="#" class="top-link">Reports</a>
+            </div>
+            <div class="top-actions">
+                <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Theme">
+                    <!-- Default to Sun pattern (showing dark mode active) -->
+                    <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06z"/></svg>
+                </button>
+            </div>
+        </header>
 
-    <!-- Render base64 image string -->
-    <img class="qr-code" th:src="'data:image/png;base64,' + ${qrCodeBase64}" alt="QR Code for Attendance"/>
+        <div class="dashboard-body">
+            <div class="status-badge">LIVE ATTENDANCE ACTIVE</div>
+            <h1 th:text="${activeSession.sessionName}">Session Name</h1>
+            <p class="description">Please scan the QR code to mark your attendance. Ensure you are within the designated zone.</p>
+            
+            <div class="flex-layout">
+                <div style="flex: 1;">
+                    <div class="card stats-card">
+                        <div class="label">SCANNED ATTENDEES</div>
+                        <div class="value" id="statsTotal" th:text="${attendees != null ? attendees.size() : 0}">0</div>
+                        <div class="trend">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+                            +<span id="newScans">0</span> since last min
+                        </div>
+                    </div>
+                    <div class="card session-id-card">
+                        <div class="label">SESSION ID</div>
+                        <div class="id-val">
+                            <span th:text="'PR-' + ${#strings.substring(activeSession.id,0,6).toUpperCase()}">PR-7724-X</span>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="info">
-        <p><strong>Geofence Target:</strong> <span th:text="${activeSession.targetLatitude}"></span>, <span th:text="${activeSession.targetLongitude}"></span></p>
-        <p><strong>Range:</strong> <span th:text="${activeSession.allowedRadius} + ' meters'"></span></p>
-    </div>
+                <div class="card qr-card" style="flex: 1.5;">
+                    <div class="qr-glow"></div>
+                    <div class="qr-wrapper">
+                        <img th:src="'data:image/png;base64,' + ${qrCodeBase64}" alt="QR"/>
+                    </div>
+                    <div class="direct-link-label">DIRECT LINK</div>
+                    <a class="direct-link-val" th:if="${attendeeUrl != null}" th:href="${attendeeUrl}" target="_blank" th:text="${#strings.replace(attendeeUrl, 'http://', '')}" style="text-decoration: none; position: relative;">presence.app/mark/7724-x</a>
+                </div>
+            </div>
 
-    <p style="word-wrap: break-word; margin-top: 1rem;">
-        URL: <a th:href="${attendeeUrl}" th:text="${attendeeUrl}" target="_blank">attendeeUrl</a>
-    </p>
+            <div class="dash-btn-container">
+                <a th:href="@{/session/{id}/dashboard(id=${activeSession.id})}" class="dash-btn">
+                    Open System Live View
+                    <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+                </a>
+            </div>
+        </div>
+    </main>
 
-    <a th:href="@{/session/{id}/dashboard(id=${activeSession.id})}" class="btn" style="background:#28a745;">View Admin Dashboard</a>
-    <br/>
-    <a href="/" class="btn" style="background:#6c757d;">Create Another Session</a>
-</div>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Theme toggling logic
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
 
+        const sunPath = "M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41.39.39 1.03.39 1.41 0l1.06-1.06z";
+        const moonPath = "M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7c.13 0 .26.01.39.03-1.63 1.42-2.67 3.49-2.67 5.79 0 3.03 2.47 5.5 5.5 5.5 2.3 0 4.37-1.04 5.79-2.67.02.13.03.26.03.39 0 3.86-3.14 7-7 7z";
+
+        function setTheme(isLight) {
+            if (isLight) {
+                document.documentElement.classList.add('light-mode');
+                themeIcon.innerHTML = `<path d="${moonPath}"/>`;
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.remove('light-mode');
+                themeIcon.innerHTML = `<path d="${sunPath}"/>`;
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Init theme
+        if (localStorage.getItem('theme') === 'light' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            setTheme(true);
+        } else {
+            setTheme(false);
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const isLightNow = document.documentElement.classList.contains('light-mode');
+            setTheme(!isLightNow);
+        });
+
+        // Existing stats logic
+        var sessionId = /*[[${activeSession.id}]]*/ '';
+        let previousCount = parseInt(document.getElementById('statsTotal').innerText) || 0;
+        function fetchAndUpdate() {
+            if (!sessionId) return;
+            fetch('/session/' + sessionId + '/attendees-data')
+                .then(r => r.json())
+                .then(data => {
+                    let total = data.length;
+                    document.getElementById('statsTotal').innerText = total;
+                    if(total > previousCount) {
+                        document.getElementById('newScans').innerText = (total - previousCount);
+                    }
+                }).catch(e => console.error(e));
+        }
+        setInterval(fetchAndUpdate, 5000);
+        /*]]>*/
+    </script>
 </body>
 </html>
