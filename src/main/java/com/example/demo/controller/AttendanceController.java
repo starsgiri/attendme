@@ -37,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AttendanceController {
 
+    private static final double MIN_ALLOWED_RADIUS_METERS = 5.0;
+
     private final AttendanceSessionRepository sessionRepository;
     private final AttendeeRepository attendeeRepository;
     private final QRService qrService;
@@ -59,13 +61,15 @@ public class AttendanceController {
             @RequestParam Double allowedRadius,
             @RequestParam(required = false) List<String> activeFields) {
 
+        double safeAllowedRadius = Math.max(allowedRadius, MIN_ALLOWED_RADIUS_METERS);
+
         AttendanceSession session = AttendanceSession.builder()
                 .sessionName(sessionName)
                 .department(department)
                 .sessionType(sessionType)
                 .targetLatitude(targetLatitude)
                 .targetLongitude(targetLongitude)
-                .allowedRadius(allowedRadius)
+                .allowedRadius(safeAllowedRadius)
                 .build();
 
         Map<String, Boolean> fields = new HashMap<>();

@@ -424,23 +424,34 @@
             font-weight: 700;
             font-size: 16px;
         }
-        .range-slider {
-            width: 100%;
-            height: 6px;
-            background: var(--toggle-bg);
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
+        .radius-input-row {
             margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .range-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent-blue);
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        .radius-input {
+            width: 120px;
+            height: 42px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-main);
+            color: var(--text-main);
+            padding: 0 12px;
+            font-size: 16px;
+            font-weight: 700;
+            outline: none;
+        }
+        .radius-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+        }
+        .radius-unit {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
         
         .info-box {
@@ -667,7 +678,10 @@
                             <label style="margin:0;">DETECTION RADIUS</label>
                             <div class="radius-val" id="radiusValDisplay">250m</div>
                         </div>
-                        <input type="range" min="50" max="2000" step="50" value="250" class="range-slider" id="allowedRadius" name="allowedRadius">
+                        <div class="radius-input-row">
+                            <input type="number" min="5" step="1" value="250" class="radius-input" id="allowedRadius" name="allowedRadius" required>
+                            <span class="radius-unit">meters (min 5)</span>
+                        </div>
 
                         <div class="info-box">
                             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
@@ -806,15 +820,32 @@
             marker.setLatLng([lat, lon]);
         }
 
-        // Connect Slider to logic
-        const radiusSlider = document.getElementById('allowedRadius');
+        // Connect manual radius input to logic
+        const radiusInput = document.getElementById('allowedRadius');
         const radiusValDisplay = document.getElementById('radiusValDisplay');
+        const MIN_RADIUS = 5;
         
-        radiusSlider.addEventListener('input', function(e) {
-            const val = e.target.value;
+        radiusInput.addEventListener('input', function(e) {
+            let val = Number(e.target.value);
+            if (!Number.isFinite(val)) {
+                return;
+            }
+            if (val < MIN_RADIUS) {
+                val = MIN_RADIUS;
+                e.target.value = val;
+            }
             radiusValDisplay.textContent = val + 'm';
             // Visual estimation on map
             marker.setRadius(val / 3); 
+        });
+
+        document.getElementById('sessionForm').addEventListener('submit', function() {
+            let val = Number(radiusInput.value);
+            if (!Number.isFinite(val) || val < MIN_RADIUS) {
+                radiusInput.value = MIN_RADIUS;
+                radiusValDisplay.textContent = MIN_RADIUS + 'm';
+                marker.setRadius(MIN_RADIUS / 3);
+            }
         });
 
         // Allow map click to select custom geo center
