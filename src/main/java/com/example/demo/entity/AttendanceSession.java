@@ -38,6 +38,7 @@ public class AttendanceSession {
     @CollectionTable(name = "session_activated_fields", joinColumns = @JoinColumn(name = "session_id"))
     @MapKeyColumn(name = "field_name")
     @Column(name = "is_active")
+    @Builder.Default
     private Map<String, Boolean> activatedFields = new HashMap<>();
     
     // Geofencing coordinates

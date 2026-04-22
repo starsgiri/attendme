@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0b1120;
+            color: #f8fafc;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 16px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .back-link {
+            color: #818cf8;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .label {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .note {
+            margin-top: 20px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Settings</h1>
+        <a href="/overview" class="back-link">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="label">Application</div>
+            <div class="value">EasyAccess / Presence</div>
+        </div>
+        <div class="card">
+            <div class="label">Runtime</div>
+            <div class="value">Spring Boot + Thymeleaf</div>
+        </div>
+        <div class="card">
+            <div class="label">Server Port</div>
+            <div class="value">8081</div>
+        </div>
+        <div class="card">
+            <div class="label">Reports</div>
+            <div class="value">CSV and Excel Export Enabled</div>
+        </div>
+    </div>
+
+    <p class="note">Settings page is active and reachable from navigation. You can extend this page with profile preferences and theme options later.</p>
+</div>
+</body>
+</html>

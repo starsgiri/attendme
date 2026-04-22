@@ -66,7 +66,7 @@
             <p class="subtitle">Please provide your details below and allow location access to confirm your presence.</p>
         </div>
         
-        <div id="errorAlert" class="alert"></div>
+        <div id="errorAlert" class="alert" th:if="${errorMessage != null}" style="display: block;" th:text="${errorMessage}"></div>
         
         <div id="locationStatus" class="status-box waiting">
             <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
@@ -77,24 +77,24 @@
             <input type="hidden" id="capturedLatitude" name="capturedLatitude"/>
             <input type="hidden" id="capturedLongitude" name="capturedLongitude"/>
 
-            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Name')}">
+            <div class="form-group" th:if="${activeSession.activatedFields != null and activeSession.activatedFields.containsKey('Name')}">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                <input type="text" id="name" name="name" required placeholder="Enter your full name" th:value="${attendee != null ? attendee.name : ''}">
             </div>
             
-            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('RollNumber')}">
+            <div class="form-group" th:if="${activeSession.activatedFields != null and activeSession.activatedFields.containsKey('RollNumber')}">
                 <label for="rollNumber">Roll / ID Number</label>
-                <input type="text" id="rollNumber" name="rollNumber" required placeholder="E.g. 19B10001">
+                <input type="text" id="rollNumber" name="rollNumber" required placeholder="E.g. 19B10001" th:value="${attendee != null ? attendee.rollNumber : ''}">
             </div>
 
-            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Branch')}">
+            <div class="form-group" th:if="${activeSession.activatedFields != null and activeSession.activatedFields.containsKey('Branch')}">
                 <label for="branch">Branch / Department</label>
-                <input type="text" id="branch" name="branch" required placeholder="E.g. Computer Science">
+                <input type="text" id="branch" name="branch" required placeholder="E.g. Computer Science" th:value="${attendee != null ? attendee.branch : ''}">
             </div>
 
-            <div class="form-group" th:if="${activeSession.activatedFields.containsKey('Year')}">
+            <div class="form-group" th:if="${activeSession.activatedFields != null and activeSession.activatedFields.containsKey('Year')}">
                 <label for="year">Year of Study</label>
-                <input type="text" id="year" name="year" required placeholder="E.g. 3rd Year">
+                <input type="text" id="year" name="year" required placeholder="E.g. 3rd Year" th:value="${attendee != null ? attendee.year : ''}">
             </div>
 
             <button type="submit" class="submit-btn" id="submitBtn" disabled>Confirm Presence</button>

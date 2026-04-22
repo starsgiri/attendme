@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(180deg, #08111f 0%, #111827 100%); color: #f8fafc; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 16px; gap: 16px; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; }
+        .back-link { color: #818cf8; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 18px; }
+        .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
+        .stat-value { font-size: 28px; font-weight: 800; color: #e2e8f0; }
+        .report-card { background-color: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid #334155; }
+        .report-header { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .report-title { font-size: 18px; font-weight: 700; }
+        .report-meta { font-size: 13px; color: #94a3b8; }
+        .report-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+        .metric { background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; border-radius: 12px; padding: 14px; }
+        .metric-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 6px; }
+        .metric-value { font-size: 20px; font-weight: 800; color: #f8fafc; }
+        .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-view { background-color: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
+        .btn-download { background-color: transparent; color: #e2e8f0; border: 1px solid #475569; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reports Overview</h1>
+        <a href="/history" class="back-link">&larr; Back to History</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Sessions</div><div class="stat-value" th:text="${totalSessions}">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total Attendees</div><div class="stat-value" th:text="${totalAttendees}">0</div></div>
+        <div class="stat-card"><div class="stat-label">In Range</div><div class="stat-value" th:text="${totalInRange}">0</div></div>
+        <div class="stat-card"><div class="stat-label">Out of Range</div><div class="stat-value" th:text="${totalOutOfRange}">0</div></div>
+    </div>
+
+    <div th:if="${reportRows == null or reportRows.empty}" class="empty-state">
+        <p>No session reports are available yet.</p>
+    </div>
+
+    <div th:each="row : ${reportRows}" class="report-card">
+        <div class="report-header">
+            <div>
+                <div class="report-title" th:text="${row.session.sessionName}">Session Name</div>
+                <div class="report-meta" th:text="${#temporals.format(row.session.createdAt, 'dd MMM yyyy HH:mm')}">12 Oct 2023 10:00</div>
+            </div>
+            <div class="report-meta" th:text="${row.session.department != null && !row.session.department.isBlank() ? row.session.department : 'N/A'}">Department</div>
+        </div>
+
+        <div class="report-body">
+            <div class="metric"><div class="metric-label">Attendees</div><div class="metric-value" th:text="${row.attendeeCount}">0</div></div>
+            <div class="metric"><div class="metric-label">In Range</div><div class="metric-value" th:text="${row.inRangeCount}">0</div></div>
+            <div class="metric"><div class="metric-label">Out of Range</div><div class="metric-value" th:text="${row.outOfRangeCount}">0</div></div>
+            <div class="metric"><div class="metric-label">Required Fields</div><div class="metric-value" th:text="${row.session.activatedFields != null ? row.session.activatedFields.size() : 0}">0</div></div>
+        </div>
+
+        <div class="actions">
+            <a th:href="@{/session/{id}/dashboard(id=${row.session.id})}" class="btn btn-view">Open Dashboard</a>
+            <a th:href="@{/session/{id}/export-csv(id=${row.session.id})}" class="btn btn-download">Download CSV</a>
+            <a th:href="@{/session/{id}/export(id=${row.session.id})}" class="btn btn-download">Download Excel</a>
+        </div>
+    </div>
+</body>
+</html>
