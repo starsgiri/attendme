@@ -13,6 +13,9 @@ import com.example.demo.entity.Attendee;
 @Repository
 public interface AttendeeRepository extends JpaRepository<Attendee, Long> {
     List<Attendee> findByAttendanceSessionId(UUID sessionId);
+
+    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Attendee a WHERE a.attendanceSession.id = :sessionId AND a.deviceFingerprint = :deviceFingerprint")
+    boolean existsBySessionAndDeviceFingerprint(@Param("sessionId") UUID sessionId, @Param("deviceFingerprint") String deviceFingerprint);
     
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Attendee a WHERE a.attendanceSession.id = :sessionId AND LOWER(TRIM(a.rollNumber)) = LOWER(TRIM(:rollNumber))")
     boolean existsBySessionAndRollNumberNormalized(@Param("sessionId") UUID sessionId, @Param("rollNumber") String rollNumber);

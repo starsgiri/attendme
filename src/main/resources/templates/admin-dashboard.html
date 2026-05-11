@@ -128,8 +128,9 @@
         <div class="sidebar-header"><div class="brand-logo">Presence</div></div>
         <div class="admin-badge"><div class="admin-title">Admin Portal</div><div class="admin-status">SYSTEM ACTIVE</div></div>
         <nav class="nav-menu">
-            <a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zM13 4v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z"/></svg> Overview</a>
-            <a href="/" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3.6 5.96c-1.16-.9-3.26-1.46-5.6-1.46s-4.44.56-5.6 1.46V16h11.2v2.96z"/></svg> Active Sessions</a>
+            <a th:href="@{/}" class="nav-item"><svg viewBox="0 0 24 24"><path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zM13 4v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z"/></svg> Overview</a>
+            <a th:href="@{/session/{id}/dashboard(id=${activeSession.id})}" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3.6 5.96c-1.16-.9-3.26-1.46-5.6-1.46s-4.44.56-5.6 1.46V16h11.2v2.96z"/></svg> Active Sessions</a>
+            <a href="/history" class="nav-item"><svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg> History</a>
         </nav>
         <a href="/" class="new-session-sidebar-btn">New Session</a>
     </aside>
@@ -137,7 +138,7 @@
     <main class="content-area">
         <header class="top-nav">
             <div class="top-links">
-                <a href="/" class="top-link active">Dashboard</a><a th:href="@{/session/{id}/publish(id=${activeSession.id})}" class="top-link">QR Publish</a><a th:href="@{/history}" class="top-link">History</a><a th:href="@{/reports}" class="top-link">Reports</a>
+                <a th:href="@{/session/{id}/dashboard(id=${activeSession.id})}" class="top-link active">Dashboard</a><a th:href="@{/session/{id}/publish(id=${activeSession.id})}" class="top-link">QR Publish</a><a href="#liveMap" class="top-link">Map</a><a href="#attendeeLogList" class="top-link">Reports</a>
             </div>
             <div class="top-actions">
                 <button class="theme-toggle-btn" id="themeToggle" title="Toggle Theme">

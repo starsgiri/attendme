@@ -5,32 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Session History</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(180deg, #0b1120 0%, #111827 100%); color: #f8fafc; margin: 0; padding: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 16px; gap: 16px; flex-wrap: wrap; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b1120; color: #f8fafc; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 16px; }
         .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #e2e8f0; }
         .back-link { color: #818cf8; text-decoration: none; font-weight: 600; font-size: 14px; }
         .back-link:hover { text-decoration: underline; }
+        
         .session-card { background-color: #1e293b; border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid #334155; }
-        .session-header { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .session-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
         .session-name { font-size: 18px; font-weight: 700; color: #f8fafc; }
         .session-date { font-size: 13px; color: #94a3b8; font-weight: 500; }
+        
         .session-body { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
         .session-info { flex: 1; min-width: 250px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
-        .session-map-container { width: 320px; height: 180px; border-radius: 12px; overflow: hidden; border: 1px solid #334155; flex-shrink: 0; }
+        .session-map-container { width: 300px; height: 150px; border-radius: 12px; overflow: hidden; border: 1px solid #334155; flex-shrink: 0; }
         .session-map { width: 100%; height: 100%; }
+
         .detail-item { font-size: 13px; color: #cbd5e1; }
         .detail-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; display: block; margin-bottom: 4px; }
-        .action-row { display: flex; gap: 12px; border-top: 1px solid #334155; padding-top: 16px; flex-wrap: wrap; }
+        
+        .action-row { display: flex; gap: 12px; border-top: 1px solid #334155; padding-top: 16px; }
         .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; transition: opacity 0.2s; }
         .btn:hover { opacity: 0.9; }
         .btn-view { background-color: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
         .btn-download { background-color: transparent; color: #e2e8f0; border: 1px solid #475569; }
+        
         .empty-state { text-align: center; padding: 60px 20px; color: #64748b; }
     </style>
 </head>
 <body>
+
     <div class="header">
         <h1>Session History</h1>
         <a href="/" class="back-link">&larr; Back to Dashboard</a>
@@ -40,61 +47,66 @@
         <p>No past sessions found. Create a new session to get started.</p>
     </div>
 
-    <div th:each="sessionItem : ${sessions}" class="session-card">
+    <div th:each="session : ${sessions}" class="session-card">
         <div class="session-header">
-            <div class="session-name" th:text="${sessionItem.sessionName}">Session Name</div>
-            <div class="session-date" th:text="${#temporals.format(sessionItem.createdAt, 'dd MMM yyyy HH:mm')}">12 Oct 2023 10:00</div>
+            <div class="session-name" th:text="${session.sessionName}">Session Name</div>
+            <div class="session-date" th:text="${#temporals.format(session.createdAt, 'dd MMM yyyy HH:mm')}">12 Oct 2023 10:00</div>
         </div>
-
+        
         <div class="session-body">
             <div class="session-info">
                 <div class="detail-item">
                     <span class="detail-label">Department</span>
-                    <span th:text="${sessionItem.department != null && !sessionItem.department.isBlank() ? sessionItem.department : 'N/A'}">Engineering</span>
+                    <span th:text="${session.department ?: 'N/A'}">Engineering</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Type</span>
-                    <span th:text="${sessionItem.sessionType != null && !sessionItem.sessionType.isBlank() ? sessionItem.sessionType : 'N/A'}">Meeting</span>
+                    <span th:text="${session.sessionType ?: 'N/A'}">Meeting</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Fields Required</span>
-                    <span th:text="${sessionItem.activatedFields != null ? sessionItem.activatedFields.size() : 0} + ' fields'">0 fields</span>
+                    <span class="detail-label">Attendees Config</span>
+                    <span th:text="${session.activatedFields.size()} + ' fields required'"></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Geofence Radius</span>
-                    <span th:text="${sessionItem.allowedRadius} + 'm'">50m</span>
+                    <span th:text="${session.allowedRadius} + 'm'"></span>
                 </div>
             </div>
-
-            <div th:if="${sessionItem.targetLatitude != null and sessionItem.targetLongitude != null}" class="session-map-container">
-                <div class="session-map"
-                     th:id="'map-' + ${sessionItem.id}"
-                     th:data-lat="${sessionItem.targetLatitude}"
-                     th:data-lng="${sessionItem.targetLongitude}"
-                     th:data-radius="${sessionItem.allowedRadius}">
+            
+            <div th:if="${session.targetLatitude != null and session.targetLongitude != null}" class="session-map-container">
+                <div class="session-map" 
+                     th:id="'map-' + ${session.id}" 
+                     th:data-lat="${session.targetLatitude}" 
+                     th:data-lng="${session.targetLongitude}" 
+                     th:data-radius="${session.allowedRadius}">
                 </div>
             </div>
         </div>
-
+        
         <div class="action-row">
-            <a th:href="@{/session/{id}/dashboard(id=${sessionItem.id})}" class="btn btn-view">View Admin Dashboard</a>
-            <a th:href="@{/session/{id}/export-csv(id=${sessionItem.id})}" class="btn btn-download">Download CSV</a>
-            <a th:href="@{/session/{id}/export(id=${sessionItem.id})}" class="btn btn-download">Download Excel</a>
+            <a th:href="@{/session/{id}/dashboard(id=${session.id})}" class="btn btn-view">
+                View Admin Dashboard
+            </a>
+            <a th:href="@{/session/{id}/export-csv(id=${session.id})}" class="btn btn-download">
+                Download CSV
+            </a>
+            <a th:href="@{/session/{id}/export(id=${session.id})}" class="btn btn-download">
+                Download Excel
+            </a>
         </div>
     </div>
 
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.session-map').forEach(function(mapEl) {
+            var mapElements = document.querySelectorAll('.session-map');
+            
+            mapElements.forEach(function(mapEl) {
                 var lat = parseFloat(mapEl.getAttribute('data-lat'));
                 var lng = parseFloat(mapEl.getAttribute('data-lng'));
                 var radius = parseFloat(mapEl.getAttribute('data-radius'));
-
-                if (Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(radius)) {
-                    return;
-                }
-
+                
                 var map = L.map(mapEl.id, {
                     zoomControl: false,
                     dragging: false,
@@ -102,9 +114,9 @@
                     doubleClickZoom: false,
                     attributionControl: false
                 }).setView([lat, lng], 15);
-
+                
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-
+                
                 L.circle([lat, lng], {
                     color: '#6366F1',
                     fillColor: '#6366F1',

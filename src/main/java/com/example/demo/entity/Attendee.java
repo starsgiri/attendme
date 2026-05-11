@@ -46,6 +46,9 @@ public class Attendee {
     
     private String rollNumber;
 
+    @Column(length = 255)
+    private String deviceFingerprint;
+
     // Captured location at the time of scanning/attendance
     private Double capturedLatitude;
     

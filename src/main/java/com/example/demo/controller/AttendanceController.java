@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 public class AttendanceController {
 
     private static final double MIN_ALLOWED_RADIUS_METERS = 5.0;
-    private static final String DUPLICATE_ATTENDANCE_MESSAGE = "u r alredy submitted ur attendance";
 
     private final AttendanceSessionRepository sessionRepository;
     private final AttendeeRepository attendeeRepository;
@@ -57,39 +55,6 @@ public class AttendanceController {
     public String showHistory(Model model) {
         model.addAttribute("sessions", sessionRepository.findAll());
         return "history";
-    }
-
-    @GetMapping("/reports")
-    public String showReports(Model model) {
-        List<AttendanceSession> sessions = sessionRepository.findAll();
-        List<Map<String, Object>> reportRows = new ArrayList<>();
-
-        int totalAttendees = 0;
-        int totalInRange = 0;
-
-        for (AttendanceSession session : sessions) {
-            List<Attendee> attendees = attendeeRepository.findByAttendanceSessionId(session.getId());
-            long inRangeCount = attendees.stream().filter(Attendee::isWithinRange).count();
-            long outOfRangeCount = attendees.size() - inRangeCount;
-
-            totalAttendees += attendees.size();
-            totalInRange += (int) inRangeCount;
-
-            Map<String, Object> row = new HashMap<>();
-            row.put("session", session);
-            row.put("attendeeCount", attendees.size());
-            row.put("inRangeCount", inRangeCount);
-            row.put("outOfRangeCount", outOfRangeCount);
-            reportRows.add(row);
-        }
-
-        model.addAttribute("reportRows", reportRows);
-        model.addAttribute("totalSessions", sessions.size());
-        model.addAttribute("totalAttendees", totalAttendees);
-        model.addAttribute("totalInRange", totalInRange);
-        model.addAttribute("totalOutOfRange", totalAttendees - totalInRange);
-
-        return "reports";
     }
 
     @PostMapping("/session")
@@ -157,7 +122,6 @@ public class AttendanceController {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid session ID"));
 
         model.addAttribute("activeSession", session);
-        model.addAttribute("attendee", new Attendee());
         return "attendee-form";
     }
 
@@ -169,15 +133,6 @@ public class AttendanceController {
         
         AttendanceSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid session ID"));
-
-        sanitizeIdentityFields(attendee);
-        
-        if (isDuplicateSubmission(sessionId, attendee)) {
-            model.addAttribute("activeSession", session);
-            model.addAttribute("attendee", attendee);
-            model.addAttribute("errorMessage", DUPLICATE_ATTENDANCE_MESSAGE);
-            return "attendee-form";
-        }
         
         attendee.setAttendanceSession(session);
         
@@ -195,42 +150,6 @@ public class AttendanceController {
         model.addAttribute("successMessage", "Attendance marked successfully!");
         model.addAttribute("isWithinRange", attendee.isWithinRange());
         return "success";
-    }
-
-    private boolean isDuplicateSubmission(UUID sessionId, Attendee attendee) {
-        String rollNumber = normalize(attendee.getRollNumber());
-        if (!rollNumber.isEmpty()) {
-            return attendeeRepository.existsBySessionAndRollNumberNormalized(sessionId, rollNumber);
-        }
-
-        String name = normalize(attendee.getName());
-        String branch = normalize(attendee.getBranch());
-        String year = normalize(attendee.getYear());
-
-        if (!name.isEmpty() && !branch.isEmpty() && !year.isEmpty()) {
-            return attendeeRepository.existsBySessionAndNameBranchYearNormalized(
-                    sessionId,
-                    name,
-                    branch,
-                    year);
-        }
-
-        if (!name.isEmpty()) {
-            return attendeeRepository.existsBySessionAndNameNormalized(sessionId, name);
-        }
-
-        return false;
-    }
-
-    private void sanitizeIdentityFields(Attendee attendee) {
-        attendee.setName(normalize(attendee.getName()));
-        attendee.setRollNumber(normalize(attendee.getRollNumber()));
-        attendee.setBranch(normalize(attendee.getBranch()));
-        attendee.setYear(normalize(attendee.getYear()));
-    }
-
-    private String normalize(String value) {
-        return value == null ? "" : value.trim();
     }
 
     @GetMapping("/session/{id}/dashboard")

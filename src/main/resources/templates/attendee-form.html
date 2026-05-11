@@ -76,6 +76,7 @@
         <form id="attendanceForm" th:action="@{/attend/{sessionId}(sessionId=${activeSession.id})}" method="post">
             <input type="hidden" id="capturedLatitude" name="capturedLatitude"/>
             <input type="hidden" id="capturedLongitude" name="capturedLongitude"/>
+            <input type="hidden" id="deviceFingerprint" name="deviceFingerprint"/>
 
             <div class="form-group" th:if="${activeSession.activatedFields != null and activeSession.activatedFields.containsKey('Name')}">
                 <label for="name">Full Name</label>
@@ -112,6 +113,27 @@
             const locationStatus = document.getElementById("locationStatus");
             const submitBtn = document.getElementById("submitBtn");
             const form = document.getElementById("attendanceForm");
+            const deviceFingerprintInput = document.getElementById("deviceFingerprint");
+
+            function getOrCreateDeviceFingerprint() {
+                const storageKey = "presence_device_fingerprint";
+                let existing = localStorage.getItem(storageKey);
+                if (existing && existing.trim().length > 0) {
+                    return existing;
+                }
+
+                let generated;
+                if (window.crypto && typeof window.crypto.randomUUID === "function") {
+                    generated = window.crypto.randomUUID();
+                } else {
+                    generated = "dev-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+                }
+
+                localStorage.setItem(storageKey, generated);
+                return generated;
+            }
+
+            deviceFingerprintInput.value = getOrCreateDeviceFingerprint();
 
             function showError(msg) {
                 errorAlert.style.display = "block";
@@ -124,9 +146,16 @@
             form.addEventListener("submit", function(e) {
                 const lat = document.getElementById("capturedLatitude").value;
                 const lng = document.getElementById("capturedLongitude").value;
+                const deviceFingerprint = deviceFingerprintInput.value;
                 if (!lat || !lng) {
                     e.preventDefault();
                     showError("Location is strictly required to mark attendance.");
+                    return;
+                }
+
+                if (!deviceFingerprint) {
+                    e.preventDefault();
+                    showError("Device verification failed. Please refresh and try again.");
                 }
             });
 
